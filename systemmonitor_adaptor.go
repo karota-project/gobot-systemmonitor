@@ -1,26 +1,26 @@
 package systemmonitor
 
 import (
-  "github.com/hybridgroup/gobot"
+	"github.com/hybridgroup/gobot"
 )
 
 type SystemmonitorAdaptor struct {
-  gobot.Adaptor
+	gobot.Adaptor
 }
 
 func NewSystemmonitorAdaptor(name string) *SystemmonitorAdaptor {
-  return &SystemmonitorAdaptor{
-    Adaptor: *gobot.NewAdaptor(
-      name,
-      "systemmonitor.SystemmonitorAdaptor",
-    ),
-  }
+	return &SystemmonitorAdaptor{
+		Adaptor: *gobot.NewAdaptor(
+			name,
+			"systemmonitor.SystemmonitorAdaptor",
+		),
+	}
 }
 
 func (s *SystemmonitorAdaptor) Connect() bool {
-  return true
+	return true
 }
 
 func (s *SystemmonitorAdaptor) Finalize() bool {
-  return true
+	return true
 }

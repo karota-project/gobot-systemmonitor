@@ -1,20 +1,20 @@
 package systemmonitor
 
 import (
-  "github.com/hybridgroup/gobot"
-  "testing"
+	"github.com/hybridgroup/gobot"
+	"testing"
 )
 
 func initTestSystemmonitorAdaptor() *SystemmonitorAdaptor {
-  return NewSystemmonitorAdaptor("myAdaptor")
+	return NewSystemmonitorAdaptor("myAdaptor")
 }
 
 func TestSystemmonitorAdaptorConnect(t *testing.T) {
-  a := initTestSystemmonitorAdaptor()
-  gobot.Expect(t, a.Connect(), true)
+	a := initTestSystemmonitorAdaptor()
+	gobot.Expect(t, a.Connect(), true)
 }
 
 func TestSystemmonitorAdaptorFinalize(t *testing.T) {
-  a := initTestSystemmonitorAdaptor()
-  gobot.Expect(t, a.Finalize(), true)
+	a := initTestSystemmonitorAdaptor()
+	gobot.Expect(t, a.Finalize(), true)
 }
