@@ -2,69 +2,16 @@ package systemmonitor
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"log/syslog"
 	"os/exec"
 	"strconv"
 	"strings"
-)
-
-const (
-	// From /usr/include/sys/syslog.h.
-	// These are the same on Linux, BSD, and OS X.
-	LOG_EMERG Priority = iota
-	LOG_ALERT
-	LOG_CRIT
-	LOG_ERR
-	LOG_WARNING
-	LOG_NOTICE
-	LOG_INFO
-	LOG_DEBUG
 )
 
 type SysInfo struct {
 	MemUsed int     `json:"mem_used"`
 	MemFree int     `json:"mem_free"`
 	CpuUsed float64 `json:"cpu_used"`
-}
-
-type SysInfoWithFunc struct {
-	*SysInfo
-	Func string `json:"func"`
-}
-
-type Priority int
-
-func convToSyslogPriority(p Priority) (priority syslog.Priority) {
-	switch p {
-	case LOG_EMERG:
-		return syslog.LOG_EMERG
-
-	case LOG_ALERT:
-		return syslog.LOG_ALERT
-
-	case LOG_CRIT:
-		return syslog.LOG_CRIT
-
-	case LOG_ERR:
-		return syslog.LOG_ERR
-
-	case LOG_WARNING:
-		return syslog.LOG_WARNING
-
-	case LOG_NOTICE:
-		return syslog.LOG_NOTICE
-
-	case LOG_INFO:
-		return syslog.LOG_INFO
-
-	case LOG_DEBUG:
-		return syslog.LOG_DEBUG
-
-	default:
-		return syslog.LOG_DEBUG
-	}
 }
 
 // exec vmstat command
@@ -120,8 +67,4 @@ func getSystemInfo() (sysInfo []*SysInfo, err error) {
 	}
 
 	return sysInfo, err
-}
-
-func logLine(sysInfo interface{}) ([]byte, error) {
-	return json.Marshal(sysInfo)
 }
