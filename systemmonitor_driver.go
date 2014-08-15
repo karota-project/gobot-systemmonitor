@@ -10,13 +10,19 @@ type SystemmonitorInterface interface {
 }
 
 func NewSystemmonitorDriver(a *SystemmonitorAdaptor, name string) *SystemmonitorDriver {
-	return &SystemmonitorDriver{
+	s := &SystemmonitorDriver{
 		Driver: *gobot.NewDriver(
 			name,
 			"systemmonitor.SystemmonitorDriver",
 			a,
 		),
 	}
+
+	s.AddCommand("SystemInfo", func(params map[string]interface{}) interface{} {
+		return resultSystemInfos(s.SystemInfo())
+	})
+
+	return s
 }
 
 func (s *SystemmonitorDriver) adaptor() *SystemmonitorAdaptor {
@@ -31,6 +37,18 @@ func (s *SystemmonitorDriver) Halt() bool {
 	return true
 }
 
-func (s *SystemmonitorDriver) Stdout(functionName string) (sysInfo []*SysInfo, err error) {
+func (s *SystemmonitorDriver) SystemInfo() (sysInfo []*SysInfo, err error) {
 	return getSystemInfo()
+}
+
+func resultSystemInfos(s []SystemInfo, err error) interface{} {
+	if err == nil {
+		return struct {
+			Result []SystemInfo `json:"result"`
+		}{s}
+	} else {
+		return struct {
+			Result error `json:"result"`
+		}{err}
+	}
 }
