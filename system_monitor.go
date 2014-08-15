@@ -4,18 +4,75 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strconv"
-	"strings"
 )
 
-type SysInfo struct {
-	MemUsed int     `json:"mem_used"`
-	MemFree int     `json:"mem_free"`
-	CpuUsed float64 `json:"cpu_used"`
+type Process struct {
+	R int `json:"r"`
+	B int `json:"b"`
 }
 
+type Memory struct {
+	Swapd  int `json:"swapd"`
+	Free   int `json:"free"`
+	Buffer int `json:"buffer"`
+	Cache  int `json:"cache"`
+}
+
+type Swap struct {
+	Si int `json:"si"`
+	So int `json:"so"`
+}
+
+type Io struct {
+	Bi int `json:"bi"`
+	Bo int `json:"bo"`
+}
+
+type System struct {
+	In int `json:"in"`
+	Cs int `json:"cs"`
+}
+
+type Cpu struct {
+	Us int `json:"us"`
+	Sy int `json:"sy"`
+	Id int `json:"id"`
+	Wa int `json:"wa"`
+}
+
+type SysInfo struct {
+	Process Process `json:"process"`
+	Memory  Memory  `json:"memory"`
+	Swap    Swap    `json:"swap"`
+	Io      Io      `json:"io"`
+	System  System  `json:"system"`
+	Cpu     Cpu     `json:"cpu"`
+}
+
+const (
+	_             = iota
+	PROCESS_R     = iota
+	PROCESS_B     = iota
+	MEMORY_SWAPD  = iota
+	MEMORY_FREE   = iota
+	MEMORY_BUFFER = iota
+	MEMORY_CACHE  = iota
+	SWAP_SI       = iota
+	SWAP_SO       = iota
+	IO_BI         = iota
+	IO_BO         = iota
+	SYSTEM_IN     = iota
+	SYSTEM_CS     = iota
+	CPU_US        = iota
+	CPU_SY        = iota
+	CPU_ID        = iota
+	CPU_WA        = iota
+)
+
 // exec vmstat command
-func getSystemInfo() (sysInfo []*SysInfo, err error) {
+func getSystemInfo() (sysInfo []SysInfo, err error) {
 	cmd := exec.Command("vmstat")
 	stdout := bytes.Buffer{}
 	stderr := bytes.Buffer{}
@@ -28,42 +85,62 @@ func getSystemInfo() (sysInfo []*SysInfo, err error) {
 		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
 	}
 
-	sysInfo = make([]*SysInfo, 0)
+	assigned := regexp.MustCompile("\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)\\s+([0-9]+)")
+
+	sysInfo = make([]SysInfo, 0)
+
 	for {
 		line, err := stdout.ReadString('\n')
 		if err != nil {
 			break
 		}
 
-		// split string into array
-		ft := make([]string, 0)
-		tokens := strings.Split(line, " ")
-		for _, t := range tokens {
-			if t != "" && t != "\t" {
-				ft = append(ft, t)
+		lineByte := []byte(line)
+		if !assigned.Match(lineByte) {
+			continue
+		}
+
+		groups := make([]int, 0)
+
+		for _, g := range assigned.FindSubmatch(lineByte) {
+			num, err := strconv.Atoi(string(g))
+
+			if err != nil {
+				num = 0
 			}
+			groups = append(groups, num)
 		}
 
-		// memUsed : swapd + buffer + cached
-		swap, err := strconv.Atoi(ft[2])
-		buf, err := strconv.Atoi(ft[4])
-		cach, err := strconv.Atoi(ft[5])
-		memUsed := swap + buf + cach
-		if err != nil {
-			continue
-		}
-
-		memFree, err := strconv.Atoi(ft[3])
-		if err != nil {
-			continue
-		}
-
-		cpuUsed, err := strconv.ParseFloat(ft[12], 64)
-		if err != nil {
-			continue
-		}
-
-		sysInfo = append(sysInfo, &SysInfo{memUsed, memFree, cpuUsed})
+		sysInfo = append(sysInfo, SysInfo{
+			Process: Process{
+				groups[PROCESS_R],
+				groups[PROCESS_B],
+			},
+			Memory: Memory{
+				groups[MEMORY_SWAPD],
+				groups[MEMORY_FREE],
+				groups[MEMORY_BUFFER],
+				groups[MEMORY_CACHE],
+			},
+			Swap: Swap{
+				groups[SWAP_SI],
+				groups[SWAP_SO],
+			},
+			Io: Io{
+				groups[IO_BI],
+				groups[IO_BO],
+			},
+			System: System{
+				groups[SYSTEM_IN],
+				groups[SYSTEM_CS],
+			},
+			Cpu: Cpu{
+				groups[CPU_US],
+				groups[CPU_SY],
+				groups[CPU_ID],
+				groups[CPU_WA],
+			},
+		})
 	}
 
 	return sysInfo, err

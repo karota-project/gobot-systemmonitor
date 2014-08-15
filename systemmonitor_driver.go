@@ -19,7 +19,7 @@ func NewSystemmonitorDriver(a *SystemmonitorAdaptor, name string) *Systemmonitor
 	}
 
 	s.AddCommand("SystemInfo", func(params map[string]interface{}) interface{} {
-		return resultSystemInfos(s.SystemInfo())
+		return resultApi(s.SystemInfo())
 	})
 
 	return s
@@ -37,15 +37,15 @@ func (s *SystemmonitorDriver) Halt() bool {
 	return true
 }
 
-func (s *SystemmonitorDriver) SystemInfo() (sysInfo []*SysInfo, err error) {
+func (s *SystemmonitorDriver) SystemInfo() (sysInfo []SysInfo, err error) {
 	return getSystemInfo()
 }
 
-func resultSystemInfos(s []SystemInfo, err error) interface{} {
+func resultApi(v interface{}, err error) interface{} {
 	if err == nil {
 		return struct {
-			Result []SystemInfo `json:"result"`
-		}{s}
+			Result interface{} `json:"result"`
+		}{v}
 	} else {
 		return struct {
 			Result error `json:"result"`
