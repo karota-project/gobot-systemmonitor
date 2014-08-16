@@ -23,20 +23,14 @@ func main() {
 			func() {
 				fmt.Println("work")
 
-				err := systemmonitorDriver.Stdout("roomba2d2")
-				if err != nil {
-					fmt.Println(err)
-				}
-				err = systemmonitorDriver.WriteFile("roomba2d2", "sample.log")
-				if err != nil {
-					fmt.Println(err)
-				}
-
-				// on debian
-				// $ cat /var/log/syslog | grep roomba2d2
-				err = systemmonitorDriver.Syslog(systemmonitor.LOG_NOTICE, "roomba2d2")
-				if err != nil {
-					fmt.Println(err)
+				systemInfo, err := systemmonitorDriver.SystemInfo()
+				if err == nil {
+					for _, s := range systemInfo {
+						fmt.Println("mem_used: ", s.Memory.Swapd)
+						fmt.Println("mem_free: ", s.Memory.Free)
+						fmt.Println("cpu_used: ", s.Cpu.Us)
+						fmt.Println("----------")
+					}
 				}
 			}))
 
